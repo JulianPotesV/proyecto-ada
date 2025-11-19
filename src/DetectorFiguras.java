@@ -1,0 +1,286 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+
+public class DetectorFiguras {
+    private static final double EPSILON = 1e-9;
+
+    public List<Figura> detectarFiguras(List<Punto> puntos) {
+        List<Figura> figuras = new ArrayList<>();
+        int contador = 0;
+
+        // Detectar cuadrados (4 puntos)
+        List<List<Punto>> cuadrados = detectarCuadrados(puntos);
+        for (List<Punto> cuad : cuadrados) {
+            double area = calcularArea(cuad);
+            figuras.add(new Figura(Figura.TipoFigura.CUADRADO, cuad, area, "Cuadrado_" + (++contador)));
+        }
+
+        // Detectar rectángulos (4 puntos) que no sean cuadrados
+        List<List<Punto>> rectangulos = detectarRectangulos(puntos);
+        for (List<Punto> rect : rectangulos) {
+            if (!esUnoCuadrado(rect)) {
+                double area = calcularArea(rect);
+                figuras.add(new Figura(Figura.TipoFigura.RECTANGULO, rect, area, "Rectangulo_" + (++contador)));
+            }
+        }
+
+        // Detectar triángulos rectángulos
+        List<List<Punto>> triangulosRect = detectarTriangulosRectangulos(puntos);
+        for (List<Punto> tri : triangulosRect) {
+            double area = calcularArea(tri);
+            figuras.add(new Figura(Figura.TipoFigura.TRIANGULO_RECTANGULO, tri, area, "TrianguloRectangulo_" + (++contador)));
+        }
+
+        // Detectar triángulos acutángulos
+        List<List<Punto>> triangulosAcuta = detectarTriangulosAcutangulos(puntos);
+        for (List<Punto> tri : triangulosAcuta) {
+            double area = calcularArea(tri);
+            figuras.add(new Figura(Figura.TipoFigura.TRIANGULO_ACUTANGULO, tri, area, "TrianguloAcutangulo_" + (++contador)));
+        }
+
+        return figuras;
+    }
+
+    private List<List<Punto>> detectarCuadrados(List<Punto> puntos) {
+        List<List<Punto>> cuadrados = new ArrayList<>();
+        int n = puntos.size();
+
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                for (int k = j + 1; k < n; k++) {
+                    for (int l = k + 1; l < n; l++) {
+                        List<Punto> cuatro = new ArrayList<>();
+                        cuatro.add(puntos.get(i));
+                        cuatro.add(puntos.get(j));
+                        cuatro.add(puntos.get(k));
+                        cuatro.add(puntos.get(l));
+
+                        if (esCuadrado(cuatro)) {
+                            cuadrados.add(ordenarPuntos(cuatro));
+                        }
+                    }
+                }
+            }
+        }
+        return cuadrados;
+    }
+
+    private List<List<Punto>> detectarRectangulos(List<Punto> puntos) {
+        List<List<Punto>> rectangulos = new ArrayList<>();
+        int n = puntos.size();
+
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                for (int k = j + 1; k < n; k++) {
+                    for (int l = k + 1; l < n; l++) {
+                        List<Punto> cuatro = new ArrayList<>();
+                        cuatro.add(puntos.get(i));
+                        cuatro.add(puntos.get(j));
+                        cuatro.add(puntos.get(k));
+                        cuatro.add(puntos.get(l));
+
+                        if (esRectangulo(cuatro)) {
+                            rectangulos.add(ordenarPuntos(cuatro));
+                        }
+                    }
+                }
+            }
+        }
+        return rectangulos;
+    }
+
+    private List<List<Punto>> detectarTriangulosRectangulos(List<Punto> puntos) {
+        List<List<Punto>> triangulos = new ArrayList<>();
+        int n = puntos.size();
+
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                for (int k = j + 1; k < n; k++) {
+                    List<Punto> tres = new ArrayList<>();
+                    tres.add(puntos.get(i));
+                    tres.add(puntos.get(j));
+                    tres.add(puntos.get(k));
+
+                    if (esTrianguloRectangulo(tres)) {
+                        triangulos.add(tres);
+                    }
+                }
+            }
+        }
+        return triangulos;
+    }
+
+    private List<List<Punto>> detectarTriangulosAcutangulos(List<Punto> puntos) {
+        List<List<Punto>> triangulos = new ArrayList<>();
+        int n = puntos.size();
+
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                for (int k = j + 1; k < n; k++) {
+                    List<Punto> tres = new ArrayList<>();
+                    tres.add(puntos.get(i));
+                    tres.add(puntos.get(j));
+                    tres.add(puntos.get(k));
+
+                    if (esTrianguloAcutangulo(tres)) {
+                        triangulos.add(tres);
+                    }
+                }
+            }
+        }
+        return triangulos;
+    }
+
+    private boolean esCuadrado(List<Punto> puntos) {
+        if (puntos.size() != 4) return false;
+
+        double[] lados = new double[6];
+        int idx = 0;
+
+        for (int i = 0; i < puntos.size(); i++) {
+            for (int j = i + 1; j < puntos.size(); j++) {
+                lados[idx++] = puntos.get(i).distancia(puntos.get(j));
+            }
+        }
+
+        java.util.Arrays.sort(lados);
+
+        // En un cuadrado: 4 lados iguales y 2 diagonales iguales
+        boolean cuatroLadosIguales = Math.abs(lados[0] - lados[3]) < EPSILON;
+        boolean dosDiagonalesIguales = Math.abs(lados[4] - lados[5]) < EPSILON;
+        boolean diagonalMayorQueLado = lados[4] > lados[0];
+
+        return cuatroLadosIguales && dosDiagonalesIguales && diagonalMayorQueLado;
+    }
+
+    private boolean esRectangulo(List<Punto> puntos) {
+        if (puntos.size() != 4) return false;
+
+        double[] lados = new double[6];
+        int idx = 0;
+
+        for (int i = 0; i < puntos.size(); i++) {
+            for (int j = i + 1; j < puntos.size(); j++) {
+                lados[idx++] = puntos.get(i).distancia(puntos.get(j));
+            }
+        }
+
+        java.util.Arrays.sort(lados);
+
+        // En un rectángulo: 2 pares de lados iguales y 2 diagonales iguales
+        boolean dosParesLados = Math.abs(lados[0] - lados[1]) < EPSILON &&
+                Math.abs(lados[2] - lados[3]) < EPSILON;
+        boolean dosDiagonalesIguales = Math.abs(lados[4] - lados[5]) < EPSILON;
+        boolean teoremaPitagoras = Math.abs(lados[0] * lados[0] + lados[2] * lados[2] - lados[4] * lados[4]) < EPSILON;
+
+        return dosParesLados && dosDiagonalesIguales && teoremaPitagoras;
+    }
+
+    private boolean esUnoCuadrado(List<Punto> puntos) {
+        return esCuadrado(puntos);
+    }
+
+    private boolean esTrianguloRectangulo(List<Punto> puntos) {
+        if (puntos.size() != 3) return false;
+
+        double a = puntos.get(0).distancia(puntos.get(1));
+        double b = puntos.get(1).distancia(puntos.get(2));
+        double c = puntos.get(0).distancia(puntos.get(2));
+
+        double[] lados = {a, b, c};
+        java.util.Arrays.sort(lados);
+
+        // Teorema de Pitágoras: a² + b² = c²
+        return Math.abs(lados[0] * lados[0] + lados[1] * lados[1] - lados[2] * lados[2]) < EPSILON;
+    }
+
+    private boolean esTrianguloAcutangulo(List<Punto> puntos) {
+        if (puntos.size() != 3) return false;
+
+        // Primero verificar que es un triángulo válido
+        double a = puntos.get(0).distancia(puntos.get(1));
+        double b = puntos.get(1).distancia(puntos.get(2));
+        double c = puntos.get(0).distancia(puntos.get(2));
+
+        // Desigualdad triangular
+        if (a + b <= c || b + c <= a || a + c <= b) return false;
+
+        // No puede ser rectángulo
+        double[] lados = {a, b, c};
+        java.util.Arrays.sort(lados);
+        if (Math.abs(lados[0] * lados[0] + lados[1] * lados[1] - lados[2] * lados[2]) < EPSILON) {
+            return false;
+        }
+
+        // Todos los ángulos deben ser menores a 90° (acutángulo)
+        // Usar ley de cosenos: cos(ángulo) = (b² + c² - a²) / (2*b*c)
+        // Si todos los cosenos son positivos, todos los ángulos son agudos
+        double cosA = (b * b + c * c - a * a) / (2 * b * c);
+        double cosB = (a * a + c * c - b * b) / (2 * a * c);
+        double cosC = (a * a + b * b - c * c) / (2 * a * b);
+
+        return cosA > EPSILON && cosB > EPSILON && cosC > EPSILON;
+    }
+
+    public double calcularArea(List<Punto> puntos) {
+        if (puntos.size() == 3) {
+            return calcularAreaTriangulo(puntos);
+        } else if (puntos.size() == 4) {
+            return calcularAreaCuadrilatero(puntos);
+        }
+        return 0;
+    }
+
+    private double calcularAreaTriangulo(List<Punto> puntos) {
+        // Fórmula de Shoelace
+        Punto p1 = puntos.get(0);
+        Punto p2 = puntos.get(1);
+        Punto p3 = puntos.get(2);
+
+        double area = Math.abs((p1.getX() * (p2.getY() - p3.getY()) +
+                p2.getX() * (p3.getY() - p1.getY()) +
+                p3.getX() * (p1.getY() - p2.getY())) / 2.0);
+        return area;
+    }
+
+    private double calcularAreaCuadrilatero(List<Punto> puntos) {
+        // Fórmula de Shoelace para cuadrilátero
+        List<Punto> ordenados = ordenarPuntos(puntos);
+        double area = 0;
+        int n = ordenados.size();
+
+        for (int i = 0; i < n; i++) {
+            int j = (i + 1) % n;
+            area += ordenados.get(i).getX() * ordenados.get(j).getY();
+            area -= ordenados.get(j).getX() * ordenados.get(i).getY();
+        }
+
+        return Math.abs(area / 2.0);
+    }
+
+    private List<Punto> ordenarPuntos(List<Punto> puntos) {
+        // Encontrar el centroide
+        double centroX = 0, centroY = 0;
+        for (Punto p : puntos) {
+            centroX += p.getX();
+            centroY += p.getY();
+        }
+        centroX /= puntos.size();
+        centroY /= puntos.size();
+
+        final double cx = centroX;
+        final double cy = centroY;
+
+        // Ordenar por ángulo respecto al centroide
+        List<Punto> ordenados = new ArrayList<>(puntos);
+        ordenados.sort((p1, p2) -> {
+            double angle1 = Math.atan2(p1.getY() - cy, p1.getX() - cx);
+            double angle2 = Math.atan2(p2.getY() - cy, p2.getX() - cx);
+            return Double.compare(angle1, angle2);
+        });
+
+        return ordenados;
+    }
+}
