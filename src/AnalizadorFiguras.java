@@ -5,15 +5,17 @@ import java.awt.event.ActionEvent;
 import java.util.*;
 import java.util.List;
 
+// clase encargada de la interfaz visual de la aplicacion
+
 public class AnalizadorFiguras extends JFrame {
     private PanelCartesiano panelCartesiano;
-    private JComboBox<String> comboPuntosLista;
+    private JComboBox<String> comboPuntosLista; // Menu desplegable para elegir la lista
     private JTable tablaFiguras;
-    private DefaultTableModel modeloTabla;
+    private DefaultTableModel modeloTabla; // Modelo de datos de la tabla
     private JLabel labelContadores;
     private DetectorFiguras detector;
-    private Map<String, List<Punto>> listas;
-    private Map<String, List<Figura>> figurasDetectadas;
+    private Map<String, List<Punto>> listas; // Almacena toda la lista de puntos
+    private Map<String, List<Figura>> figurasDetectadas; //Almacena figuras detectadas por lista
     private String listaActual;
 
     public AnalizadorFiguras() {
@@ -22,9 +24,9 @@ public class AnalizadorFiguras extends JFrame {
         setSize(1200, 800);
         setLocationRelativeTo(null);
 
-        detector = new DetectorFiguras();
-        listas = new LinkedHashMap<>();
-        figurasDetectadas = new HashMap<>();
+        detector = new DetectorFiguras();   // Crear el detector
+        listas = new LinkedHashMap<>();     // Mapa ordenado (insercion -> lista1, lista2, lista3)
+        figurasDetectadas = new HashMap<>();    // Mapa normal -> no garantiza orden (es aleatorio)
 
         // Inicializar datos de prueba
         inicializarDatos();
@@ -35,6 +37,7 @@ public class AnalizadorFiguras extends JFrame {
         setVisible(true);
     }
 
+    // Cargar datos de prueba
     private void inicializarDatos() {
         // Lista 1: Cuadrado y Rectángulo
         List<Punto> lista1 = new ArrayList<>();
@@ -83,16 +86,26 @@ public class AnalizadorFiguras extends JFrame {
         lista4.add(new Punto(0, 4));
         listas.put("Lista 4", lista4);
 
+        // Lista 5: nueva lista -> cuadrado
+        List<Punto> lista5 = new ArrayList<>();
+        lista5.add(new Punto(1, 1));
+        lista5.add(new Punto(1, 5));
+        lista5.add(new Punto(5, 1));
+        lista5.add(new Punto(1, -2));
+        lista5.add(new Punto(5, -2));
+        listas.put("Lista 5", lista5);
+
         // Detectar figuras para cada lista
         for (Map.Entry<String, List<Punto>> entry : listas.entrySet()) {
-            List<Figura> figuras = detector.detectarFiguras(entry.getValue());
-            figuras.sort(Comparator.comparingDouble(Figura::getArea));
-            figurasDetectadas.put(entry.getKey(), figuras);
+            List<Figura> figuras = detector.detectarFiguras(entry.getValue()); // Detecta que figuras se puede formar
+            figuras.sort(Comparator.comparingDouble(Figura::getArea)); // Ordena por area
+            figurasDetectadas.put(entry.getKey(), figuras); // Son guardadas en el mapa
         }
 
-        listaActual = "Lista 1";
+        listaActual = "Lista 1"; // Empieza mostrando la lista 1
     }
 
+    // Construye la GUI
     private void crearInterfaz() {
         // Panel superior con controles
         JPanel panelControl = crearPanelControl();
@@ -111,6 +124,7 @@ public class AnalizadorFiguras extends JFrame {
         actualizarVista();
     }
 
+    // Panel superior con controles
     private JPanel crearPanelControl() {
         JPanel panel = new JPanel();
         panel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
@@ -122,9 +136,9 @@ public class AnalizadorFiguras extends JFrame {
         comboPuntosLista.setSelectedIndex(0);
         comboPuntosLista.addActionListener(e -> {
             listaActual = (String) comboPuntosLista.getSelectedItem();
-            actualizarVista();
+            actualizarVista(); // redibuja todo cuando se cambia de lista
         });
-        panel.add(comboPuntosLista);
+        panel.add(comboPuntosLista); // añade el comboBox al panel
 
         // Botón para mostrar/ocultar puntos
         JCheckBox checkPuntos = new JCheckBox("Mostrar Puntos", true);
@@ -144,18 +158,19 @@ public class AnalizadorFiguras extends JFrame {
         return panel;
     }
 
+    // Panel inferior con tabla
     private JPanel crearPanelTabla() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createTitledBorder("Figuras Detectadas (Ordenadas por Área)"));
 
         // Crear tabla
         String[] columnas = {"Identificador", "Tipo", "Área", "Puntos"};
-        modeloTabla = new DefaultTableModel(columnas, 0);
+        modeloTabla = new DefaultTableModel(columnas, 0); // sin filas iniciales
         tablaFiguras = new JTable(modeloTabla);
         tablaFiguras.setRowHeight(30);
         tablaFiguras.getColumnModel().getColumn(3).setPreferredWidth(200);
 
-        JScrollPane scrollPane = new JScrollPane(tablaFiguras);
+        JScrollPane scrollPane = new JScrollPane(tablaFiguras); // tabla con scroll
         panel.add(scrollPane, BorderLayout.CENTER);
 
         panel.setPreferredSize(new Dimension(0, 200));
@@ -163,6 +178,7 @@ public class AnalizadorFiguras extends JFrame {
         return panel;
     }
 
+    // actualizacion de vista respecto al cambio de listas
     private void actualizarVista() {
         List<Punto> puntosActuales = listas.get(listaActual);
         List<Figura> figurasActuales = figurasDetectadas.get(listaActual);
@@ -172,14 +188,16 @@ public class AnalizadorFiguras extends JFrame {
         panelCartesiano.setFiguras(figurasActuales);
 
         // Actualizar tabla
-        modeloTabla.setRowCount(0);
+        modeloTabla.setRowCount(0); // Borra todas las filas
         for (Figura fig : figurasActuales) {
+            // Construye un string con todos los puntos
             StringBuilder puntos = new StringBuilder();
             for (Punto p : fig.getPuntos()) {
                 if (puntos.length() > 0) puntos.append(", ");
                 puntos.append(p.toString());
             }
 
+            // Agrega fila a la tabla
             modeloTabla.addRow(new Object[]{
                     fig.getIdentificador(),
                     fig.getTipo().getNombre(),
@@ -190,13 +208,13 @@ public class AnalizadorFiguras extends JFrame {
 
         // Actualizar contadores
         int cuadrados = (int) figurasActuales.stream()
-                .filter(f -> f.getTipo() == Figura.TipoFigura.CUADRADO).count();
+                .filter(f -> f.getTipo() == Figura.TipoFigura.CUADRADO).count(); // filtra solo cuadrados y cuenta cuantos hay
         int rectangulos = (int) figurasActuales.stream()
-                .filter(f -> f.getTipo() == Figura.TipoFigura.RECTANGULO).count();
+                .filter(f -> f.getTipo() == Figura.TipoFigura.RECTANGULO).count(); // filtra solo rectangulos y cuenta cuantos hay
         int triRectangulos = (int) figurasActuales.stream()
-                .filter(f -> f.getTipo() == Figura.TipoFigura.TRIANGULO_RECTANGULO).count();
+                .filter(f -> f.getTipo() == Figura.TipoFigura.TRIANGULO_RECTANGULO).count(); // filtra solo triangulos rectangulos y cuenta cuantos hay
         int triAcutangulos = (int) figurasActuales.stream()
-                .filter(f -> f.getTipo() == Figura.TipoFigura.TRIANGULO_ACUTANGULO).count();
+                .filter(f -> f.getTipo() == Figura.TipoFigura.TRIANGULO_ACUTANGULO).count(); // filtra solo triangulos acutangulos y cuenta cuantos hay
 
         labelContadores.setText(String.format(
                 "Cuadrados: %d | Rectángulos: %d | Tri. Rectángulos: %d | Tri. Acutángulos: %d | Total: %d",

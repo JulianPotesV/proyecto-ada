@@ -3,8 +3,13 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
+/*
+clase encargada de la deteccion geometrica de figuras, analiza una lista de puntos
+y encuentra todas las figuras posibles (cuadrados, rectángulos, triángulos).
+*/
 public class DetectorFiguras {
-    private static final double EPSILON = 1e-9;
+    // su objetivo es usarlo para comparaciones (la diferencia entre doubles)
+    private static final double EPSILON = 1e-9; // epsilon es igual a 0.000000001
 
     public List<Figura> detectarFiguras(List<Punto> puntos) {
         List<Figura> figuras = new ArrayList<>();
@@ -20,7 +25,7 @@ public class DetectorFiguras {
         // Detectar rectángulos (4 puntos) que no sean cuadrados
         List<List<Punto>> rectangulos = detectarRectangulos(puntos);
         for (List<Punto> rect : rectangulos) {
-            if (!esUnoCuadrado(rect)) {
+            if (!esUnoCuadrado(rect)) { // evita duplicados
                 double area = calcularArea(rect);
                 figuras.add(new Figura(Figura.TipoFigura.RECTANGULO, rect, area, "Rectangulo_" + (++contador)));
             }
@@ -43,10 +48,12 @@ public class DetectorFiguras {
         return figuras;
     }
 
+    // prueba todas las combinaciones posibles de 4 puntos y revisar si forman un cuadrado
     private List<List<Punto>> detectarCuadrados(List<Punto> puntos) {
         List<List<Punto>> cuadrados = new ArrayList<>();
         int n = puntos.size();
 
+        // realiza combinatoria de c(n,4)
         for (int i = 0; i < n; i++) {
             for (int j = i + 1; j < n; j++) {
                 for (int k = j + 1; k < n; k++) {
@@ -136,16 +143,17 @@ public class DetectorFiguras {
     private boolean esCuadrado(List<Punto> puntos) {
         if (puntos.size() != 4) return false;
 
-        double[] lados = new double[6];
+        double[] lados = new double[6]; // 6 distancias entre 4 puntos, 4 lados y 2 diagonales
         int idx = 0;
 
+        // calcular todas las distancias entre los 4 puntos
         for (int i = 0; i < puntos.size(); i++) {
             for (int j = i + 1; j < puntos.size(); j++) {
                 lados[idx++] = puntos.get(i).distancia(puntos.get(j));
             }
         }
 
-        java.util.Arrays.sort(lados);
+        java.util.Arrays.sort(lados); // ordenar de menor a mayor
 
         // En un cuadrado: 4 lados iguales y 2 diagonales iguales
         boolean cuatroLadosIguales = Math.abs(lados[0] - lados[3]) < EPSILON;
@@ -170,8 +178,7 @@ public class DetectorFiguras {
         java.util.Arrays.sort(lados);
 
         // En un rectángulo: 2 pares de lados iguales y 2 diagonales iguales
-        boolean dosParesLados = Math.abs(lados[0] - lados[1]) < EPSILON &&
-                Math.abs(lados[2] - lados[3]) < EPSILON;
+        boolean dosParesLados = Math.abs(lados[0] - lados[1]) < EPSILON && Math.abs(lados[2] - lados[3]) < EPSILON;
         boolean dosDiagonalesIguales = Math.abs(lados[4] - lados[5]) < EPSILON;
         boolean teoremaPitagoras = Math.abs(lados[0] * lados[0] + lados[2] * lados[2] - lados[4] * lados[4]) < EPSILON;
 
