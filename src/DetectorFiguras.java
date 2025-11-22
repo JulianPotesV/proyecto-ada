@@ -49,6 +49,7 @@ public class DetectorFiguras {
     }
 
     // prueba todas las combinaciones posibles de 4 puntos y revisar si forman un cuadrado
+    // algoritmo 1
     private List<List<Punto>> detectarCuadrados(List<Punto> puntos) {
         List<List<Punto>> cuadrados = new ArrayList<>();
         int n = puntos.size();
@@ -74,6 +75,7 @@ public class DetectorFiguras {
         return cuadrados;
     }
 
+    // algoritmo 2
     private List<List<Punto>> detectarRectangulos(List<Punto> puntos) {
         List<List<Punto>> rectangulos = new ArrayList<>();
         int n = puntos.size();
@@ -98,6 +100,7 @@ public class DetectorFiguras {
         return rectangulos;
     }
 
+    // algoritmo 3
     private List<List<Punto>> detectarTriangulosRectangulos(List<Punto> puntos) {
         List<List<Punto>> triangulos = new ArrayList<>();
         int n = puntos.size();
@@ -119,6 +122,7 @@ public class DetectorFiguras {
         return triangulos;
     }
 
+    // algoritmo 4
     private List<List<Punto>> detectarTriangulosAcutangulos(List<Punto> puntos) {
         List<List<Punto>> triangulos = new ArrayList<>();
         int n = puntos.size();
@@ -140,6 +144,7 @@ public class DetectorFiguras {
         return triangulos;
     }
 
+    // algoritmo 5
     private boolean esCuadrado(List<Punto> puntos) {
         if (puntos.size() != 4) return false;
 
@@ -163,6 +168,7 @@ public class DetectorFiguras {
         return cuatroLadosIguales && dosDiagonalesIguales && diagonalMayorQueLado;
     }
 
+    // algoritmo 6
     private boolean esRectangulo(List<Punto> puntos) {
         if (puntos.size() != 4) return false;
 
@@ -189,6 +195,7 @@ public class DetectorFiguras {
         return esCuadrado(puntos);
     }
 
+    // algoritmo 7
     private boolean esTrianguloRectangulo(List<Punto> puntos) {
         if (puntos.size() != 3) return false;
 
@@ -203,6 +210,7 @@ public class DetectorFiguras {
         return Math.abs(lados[0] * lados[0] + lados[1] * lados[1] - lados[2] * lados[2]) < EPSILON;
     }
 
+    // algoritmo 8
     private boolean esTrianguloAcutangulo(List<Punto> puntos) {
         if (puntos.size() != 3) return false;
 
@@ -240,6 +248,7 @@ public class DetectorFiguras {
         return 0;
     }
 
+    // algoritmo 9
     private double calcularAreaTriangulo(List<Punto> puntos) {
         // Fórmula de Shoelace
         Punto p1 = puntos.get(0);
@@ -252,6 +261,7 @@ public class DetectorFiguras {
         return area;
     }
 
+    // algoritmo 10
     private double calcularAreaCuadrilatero(List<Punto> puntos) {
         // Fórmula de Shoelace para cuadrilátero
         List<Punto> ordenados = ordenarPuntos(puntos);
@@ -267,6 +277,7 @@ public class DetectorFiguras {
         return Math.abs(area / 2.0);
     }
 
+    // algoritmo 11
     private List<Punto> ordenarPuntos(List<Punto> puntos) {
         // Encontrar el centroide
         double centroX = 0, centroY = 0;
