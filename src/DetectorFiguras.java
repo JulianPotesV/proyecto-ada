@@ -1,7 +1,5 @@
 import java.util.ArrayList;
 import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
 
 /*
 clase encargada de la deteccion geometrica de figuras, analiza una lista de puntos
@@ -158,7 +156,7 @@ public class DetectorFiguras {
             }
         }
 
-        java.util.Arrays.sort(lados); // ordenar de menor a mayor
+        Ordenamiento.ordenar(lados); // Ordenar de menor a mayor
 
         // En un cuadrado: 4 lados iguales y 2 diagonales iguales
         boolean cuatroLadosIguales = Math.abs(lados[0] - lados[3]) < EPSILON;
@@ -181,7 +179,7 @@ public class DetectorFiguras {
             }
         }
 
-        java.util.Arrays.sort(lados);
+        Ordenamiento.ordenar(lados); // Ordenar de menor a mayor
 
         // En un rectángulo: 2 pares de lados iguales y 2 diagonales iguales
         boolean dosParesLados = Math.abs(lados[0] - lados[1]) < EPSILON && Math.abs(lados[2] - lados[3]) < EPSILON;
@@ -204,7 +202,7 @@ public class DetectorFiguras {
         double c = puntos.get(0).distancia(puntos.get(2));
 
         double[] lados = {a, b, c};
-        java.util.Arrays.sort(lados);
+        Ordenamiento.ordenar(lados); // Ordenar de menor a mayor
 
         // Teorema de Pitágoras: a² + b² = c²
         return Math.abs(lados[0] * lados[0] + lados[1] * lados[1] - lados[2] * lados[2]) < EPSILON;
@@ -224,7 +222,7 @@ public class DetectorFiguras {
 
         // No puede ser rectángulo
         double[] lados = {a, b, c};
-        java.util.Arrays.sort(lados);
+        Ordenamiento.ordenar(lados); // Ordenar de menor a mayor
         if (Math.abs(lados[0] * lados[0] + lados[1] * lados[1] - lados[2] * lados[2]) < EPSILON) {
             return false;
         }
@@ -288,16 +286,17 @@ public class DetectorFiguras {
         centroX /= puntos.size();
         centroY /= puntos.size();
 
-        final double cx = centroX;
-        final double cy = centroY;
+        // Convertir List a Array (porque nuestro algoritmo trabaja con arrays)
+        Punto[] arregloPuntos = puntos.toArray(new Punto[0]);
 
-        // Ordenar por ángulo respecto al centroide
-        List<Punto> ordenados = new ArrayList<>(puntos);
-        ordenados.sort((p1, p2) -> {
-            double angle1 = Math.atan2(p1.getY() - cy, p1.getX() - cx);
-            double angle2 = Math.atan2(p2.getY() - cy, p2.getX() - cx);
-            return Double.compare(angle1, angle2);
-        });
+        // Ordenar usando nuestro algoritmo propio
+        Ordenamiento.ordenarPorAngulo(arregloPuntos, centroX, centroY);
+
+        // Convertir de vuelta a List
+        List<Punto> ordenados = new ArrayList<>();
+        for (Punto p : arregloPuntos) {
+            ordenados.add(p);
+        }
 
         return ordenados;
     }

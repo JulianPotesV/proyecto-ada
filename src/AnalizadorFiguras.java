@@ -18,6 +18,12 @@ public class AnalizadorFiguras extends JFrame {
     private Map<String, List<Figura>> figurasDetectadas; //Almacena figuras detectadas por lista
     private String listaActual;
 
+    // checkboxes con filtro para las figuras
+    private JCheckBox checkCuadrados;
+    private JCheckBox checkRectangulos;
+    private JCheckBox checkTriRectangulos;
+    private JCheckBox checkTriAcutangulos;
+
     public AnalizadorFiguras() {
         setTitle("Analizador de Figuras Geométricas");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -150,6 +156,30 @@ public class AnalizadorFiguras extends JFrame {
         checkFiguras.addActionListener(e -> panelCartesiano.setMostrarFiguras(checkFiguras.isSelected()));
         panel.add(checkFiguras);
 
+        // Separador visual
+        panel.add(new JSeparator(JSeparator.VERTICAL));
+        panel.add(new JLabel("Filtros:"));
+
+        // Checkbox para Cuadrados
+        checkCuadrados = new JCheckBox("Cuadrados", true);
+        checkCuadrados.addActionListener(e -> actualizarVista());
+        panel.add(checkCuadrados);
+
+        // Checkbox para Rectángulos
+        checkRectangulos = new JCheckBox("Rectángulos", true);
+        checkRectangulos.addActionListener(e -> actualizarVista());
+        panel.add(checkRectangulos);
+
+        // Checkbox para Triángulos Rectángulos
+        checkTriRectangulos = new JCheckBox("Tri. Rectángulos", true);
+        checkTriRectangulos.addActionListener(e -> actualizarVista());
+        panel.add(checkTriRectangulos);
+
+        // Checkbox para Triángulos Acutángulos
+        checkTriAcutangulos = new JCheckBox("Tri. Acutángulos", true);
+        checkTriAcutangulos.addActionListener(e -> actualizarVista());
+        panel.add(checkTriAcutangulos);
+
         // Label con contadores
         labelContadores = new JLabel();
         panel.add(new JSeparator(JSeparator.VERTICAL));
@@ -183,13 +213,39 @@ public class AnalizadorFiguras extends JFrame {
         List<Punto> puntosActuales = listas.get(listaActual);
         List<Figura> figurasActuales = figurasDetectadas.get(listaActual);
 
+        // Filtrar figuras según los checkboxes activos
+        List<Figura> figurasFiltradas = new ArrayList<>();
+        for (Figura fig : figurasActuales) {
+            boolean mostrar = false;
+
+            // Verificar si el tipo de figura está seleccionado
+            switch (fig.getTipo()) {
+                case CUADRADO:
+                    mostrar = checkCuadrados.isSelected();
+                    break;
+                case RECTANGULO:
+                    mostrar = checkRectangulos.isSelected();
+                    break;
+                case TRIANGULO_RECTANGULO:
+                    mostrar = checkTriRectangulos.isSelected();
+                    break;
+                case TRIANGULO_ACUTANGULO:
+                    mostrar = checkTriAcutangulos.isSelected();
+                    break;
+            }
+
+            if (mostrar) {
+                figurasFiltradas.add(fig);
+            }
+        }
+
         // Actualizar panel cartesiano
         panelCartesiano.setPuntos(puntosActuales);
-        panelCartesiano.setFiguras(figurasActuales);
+        panelCartesiano.setFiguras(figurasFiltradas);
 
         // Actualizar tabla
         modeloTabla.setRowCount(0); // Borra todas las filas
-        for (Figura fig : figurasActuales) {
+        for (Figura fig : figurasFiltradas) {
             // Construye un string con todos los puntos
             StringBuilder puntos = new StringBuilder();
             for (Punto p : fig.getPuntos()) {
