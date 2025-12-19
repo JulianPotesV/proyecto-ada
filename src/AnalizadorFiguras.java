@@ -47,7 +47,7 @@ public class AnalizadorFiguras extends JFrame {
     private void inicializarDatos() {
         // Lista 1: Cuadrado y Rectángulo
         List<Punto> lista1 = new ArrayList<>();
-        lista1.add(new Punto(1, 1));
+        lista1.add(new Punto(15, 20));
         lista1.add(new Punto(5, 1));
         lista1.add(new Punto(5, 5));
         lista1.add(new Punto(1, 5));

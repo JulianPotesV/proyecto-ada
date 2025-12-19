@@ -1,48 +1,60 @@
-/*
- Representa un punto en un plano cartesiano bidimensional.
-
- Esta clase encapsula las coordenadas (x, y) de un punto y proporciona
- operaciones básicas como el cálculo de distancia euclidiana entre puntos
- y comparación de igualdad basada en coordenadas.
-
- Los puntos son inmutables: una vez creados, sus coordenadas no pueden modificarse.
+/**
+ * Representa un punto en un plano cartesiano bidimensional.
+ * Esta clase permite crear puntos con coordenadas (x, y) y realizar
+ * operaciones básicas como calcular distancias y comparar puntos.
  */
 
- public class Punto {
+public class Punto {
     private double x;
     private double y;
 
-    // coordenadas de un punto
     public Punto(double x, double y) {
         this.x = x;
         this.y = y;
     }
 
-    public double getX() {
-        return x;
-    }
-    public double getY() {
-        return y;
+    public double getX(){ return x; }
+    public double getY(){ return y; }
+
+    /**
+     * Calcula la distancia euclidiana entre este punto y otro punto.
+     * La fórmula utilizada es: √[(x₂-x₁)² + (y₂-y₁)²]
+     *
+     * @param otroPunto el punto con el cual se calculará la distancia
+     * @return la distancia euclidiana entre este punto y otroPunto
+     * @throws NullPointerException si otroPunto es null
+     */
+
+    public double distancia(Punto otroPunto){
+        return Math.sqrt(Math.pow(this.x - otroPunto.x, 2) + Math.pow(this.y - otroPunto.y, 2));
     }
 
-    // calculo de la distancia entre dos puntos usando la formula de la distancia euclidiana
-    // √[(x₂-x₁)² + (y₂-y₁)²]
-    public double distancia(Punto otro) {
-        return Math.sqrt(Math.pow(this.x - otro.x, 2) + Math.pow(this.y - otro.y, 2));
-    }
-
-    // representacion textual de un punto
     @Override
-    public String toString() {
-        return String.format("(%.1f, %.1f)", x, y);
-    }
+    public String toString(){ return String.format("(%.1f, %.1f)", x, y); }
 
-    // compara si dos puntos tienen la misma coordenada
+    /**
+     * Compara este punto con el objeto especificado para determinar si son iguales.
+     * Dos puntos se consideran iguales si tienen las mismas coordenadas x e y.
+     *
+     * @param obj el objeto a comparar con este punto
+     * @return true si el objeto es un punto con las mismas coordenadas que este punto,
+     *         false en caso contrario
+     */
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true; // compara las referencias en memoria
-        if (obj == null || getClass() != obj.getClass()) return false;
-        Punto punto = (Punto) obj;
+    public boolean equals(Object obj){
+        // compara referencias entre objetos
+        if (this == obj){
+            return true;
+        }
+
+        // si el objeto es nulo o son de diferentes clases, retorna false
+        if (obj == null || getClass() != obj.getClass()){
+            return false;
+        }
+
+        Punto punto = (Punto) obj; // conversion de object a Punto
+
+        // si ambas coordenadas son iguales (.compare devuelve 0 si son iguales), retorna true
         return Double.compare(punto.x, x) == 0 && Double.compare(punto.y, y) == 0;
     }
 }
