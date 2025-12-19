@@ -1,5 +1,8 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.util.List;
 
 /*
@@ -25,8 +28,50 @@ public class PanelCartesiano extends JPanel {
     private boolean mostrarPuntos = true;
     private boolean mostrarFiguras = true;
 
+    // Variables para el desplazamiento (Panning)
+    private int offsetX = 0;
+    private int offsetY = 0;
+    private Point mousePt; // Para guardar la posición del mouse al hacer clic
+
     public PanelCartesiano() {
         this.setBackground(Color.WHITE); //fondo blanco
+
+        // Configurar interacción con el mouse
+        MouseAdapter ma = new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                mousePt = e.getPoint(); // Guardar dónde se hizo clic inicial
+                repaint();
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                int dx = e.getX() - mousePt.x;
+                int dy = e.getY() - mousePt.y;
+
+                offsetX += dx; // Actualizar desplazamiento horizontal
+                offsetY += dy; // Actualizar desplazamiento vertical
+
+                mousePt = e.getPoint(); // Actualizar punto de referencia
+                repaint(); // Redibujar el panel con los nuevos offsets
+            }
+
+            @Override
+            public void mouseWheelMoved(    MouseWheelEvent e) {
+                // Zoom simple
+                if (e.getWheelRotation() < 0) {
+                    escala += 2; // Zoom In (Acercar)
+                } else {
+                    escala = Math.max(5, escala - 2); // Zoom Out (Alejar) con límite mínimo
+                }
+                repaint();
+            }
+        };
+
+        // Añadir los listeners al panel
+        this.addMouseListener(ma);
+        this.addMouseMotionListener(ma);
+        this.addMouseWheelListener(ma);
     }
 
     // lista de puntos a dibujar
@@ -57,24 +102,28 @@ public class PanelCartesiano extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
+
+        // Activar suavizado para gráficos de alta calidad
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // calculo del centro del panel (para dibujar los ejes del plano)
+        // Cálculo del centro dinámico (incluyendo el desplazamiento offsetX/Y)
         int width = getWidth();
         int height = getHeight();
-        int centerX = width / 2;
-        int centerY = height / 2;
 
-        // Dibujar el plano cartesiano (ejes en cruz)
-        dibujarEjes(g2d, centerX, centerY, width, height);
+        // Aquí es donde aplicamos el "panning": el centro se mueve según lo que hayas arrastrado
+        int centerX = (width / 2) + offsetX;
+        int centerY = (height / 2) + offsetY;
+
+        // Dibujar elementos en orden (capas de abajo hacia arriba)
         dibujarCuadricula(g2d, centerX, centerY, width, height);
+        dibujarEjes(g2d, centerX, centerY, width, height);
 
-        // Dibujar figuras si existen
+        // Dibujar figuras si existen y está activa la opción
         if (mostrarFiguras && figurasActuales != null && !figurasActuales.isEmpty()) {
             dibujarFiguras(g2d, centerX, centerY);
         }
 
-        // Dibujar puntos si existen
+        // 4. Dibujar puntos si existen y está activa la opción
         if (mostrarPuntos && puntos != null && !puntos.isEmpty()) {
             dibujarPuntos(g2d, centerX, centerY);
         }
@@ -83,62 +132,45 @@ public class PanelCartesiano extends JPanel {
     // dibuja los ejes x,y
     private void dibujarEjes(Graphics2D g2d, int centerX, int centerY, int width, int height) {
         g2d.setColor(Color.BLACK);
-        g2d.setStroke(new BasicStroke(2));
+        g2d.setStroke(new BasicStroke(1));
 
-        // Eje X (horizontal)
-        g2d.drawLine(0, centerY, width, centerY);
+        // Dibujar líneas de los ejes X e Y
+        g2d.drawLine(0, centerY, width, centerY);  // Eje X
+        g2d.drawLine(centerX, 0, centerX, height); // Eje Y
 
-        // Eje Y (vertical)
-        g2d.drawLine(centerX, 0, centerX, height);
-
-        // Flechas de los ejes
-        g2d.setFont(new Font("Arial", Font.BOLD, 14));
-        g2d.drawString("X", width - 20, centerY - 10);
-        g2d.drawString("Y", centerX + 10, 20);
-
-        // Marcas en los ejes
-        g2d.setColor(Color.DARK_GRAY);
+        // Dibujar marcas y números en los ejes
         g2d.setFont(new Font("Arial", Font.PLAIN, 10));
-        for (int i = -10; i <= 10; i++) {
-            if (i == 0) continue;
 
-            // convierte coordenadas a pixeles
-            int x = centerX + i * escala;
-            int y = centerY + i * escala;
+        // Marcas en Eje X
+        for (int i = centerX + escala; i < width; i += escala) dibujarMarcaX(g2d, i, centerY, (i - centerX) / escala);
+        for (int i = centerX - escala; i > 0; i -= escala) dibujarMarcaX(g2d, i, centerY, (i - centerX) / escala);
 
-            // Marca en eje X
-            g2d.drawLine(x, centerY - 3, x, centerY + 3);
-            if (i % 2 == 0) {
-                g2d.drawString(String.valueOf(i), x - 5, centerY + 15);
-            }
+        // Marcas en Eje Y
+        for (int i = centerY - escala; i > 0; i -= escala) dibujarMarcaY(g2d, centerX, i, (centerY - i) / escala);
+        for (int i = centerY + escala; i < height; i += escala) dibujarMarcaY(g2d, centerX, i, (centerY - i) / escala);
+    }
 
-            // Marca en eje Y
-            g2d.drawLine(centerX - 3, y, centerX + 3, y);
-            if (i % 2 == 0) {
-                g2d.drawString(String.valueOf(i), centerX - 20, y + 5);
-            }
-        }
+    private void dibujarMarcaX(Graphics2D g2d, int x, int y, int valor) {
+        g2d.drawLine(x, y - 3, x, y + 3);
+        g2d.drawString(String.valueOf(valor), x - 5, y + 15);
+    }
 
-        // Origen
-        g2d.drawString("0", centerX - 10, centerY + 15);
+    private void dibujarMarcaY(Graphics2D g2d, int x, int y, int valor) {
+        g2d.drawLine(x - 3, y, x + 3, y);
+        g2d.drawString(String.valueOf(valor), x + 5, y + 5);
     }
 
     // dibuja las lineas grises de fondo que forman la cuadricula del plano cartesiano
     private void dibujarCuadricula(Graphics2D g2d, int centerX, int centerY, int width, int height) {
-        g2d.setColor(new Color(220, 220, 220)); // gris claro
-        g2d.setStroke(new BasicStroke(1)); // grosor de linea de 1 pixel
+        g2d.setColor(new Color(230, 230, 230)); // Gris muy claro
 
-        // Dibujo de las líneas verticales
-        for (int i = -10; i <= 10; i++) {
-            int x = centerX + i * escala;
-            g2d.drawLine(x, 0, x, height);
-        }
+        // Líneas verticales (partiendo del centro hacia la derecha e izquierda)
+        for (int i = centerX; i < width; i += escala) g2d.drawLine(i, 0, i, height);
+        for (int i = centerX; i > 0; i -= escala) g2d.drawLine(i, 0, i, height);
 
-        // Dibujo de las líneas horizontales
-        for (int i = -10; i <= 10; i++) {
-            int y = centerY + i * escala;
-            g2d.drawLine(0, y, width, y);
-        }
+        // Líneas horizontales (partiendo del centro hacia abajo y arriba)
+        for (int i = centerY; i < height; i += escala) g2d.drawLine(0, i, width, i);
+        for (int i = centerY; i > 0; i -= escala) g2d.drawLine(0, i, width, i);
     }
 
     // dibujar los puntos en el plano cartesiano, recorriendo la lista de puntos
